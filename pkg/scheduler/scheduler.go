@@ -275,6 +275,8 @@ func New(ctx context.Context,
 		options.profiles = cfg.Profiles
 	}
 	//注册intree的plugins
+	//会读取所有 intree 的 plugins 注册掉，譬如：注册interpodaffinity 的调度算法，这种 plugin 的注册方式是
+	//通过 v1.15 开始引入的 scheduler framework 实现的，我们这里不深入
 	registry := frameworkplugins.NewInTreeRegistry()
 	if err := registry.Merge(options.frameworkOutOfTreeRegistry); err != nil {
 		return nil, err
@@ -290,6 +292,8 @@ func New(ctx context.Context,
 	podLister := informerFactory.Core().V1().Pods().Lister()
 	nodeLister := informerFactory.Core().V1().Nodes().Lister()
 	//初始化snapshot
+	//初始化 Snapshot，初始化一个 map 保存 node 信息，是用在 Algorithm.Schedule 的过程中的，
+	//主要是保留一份 cache 的备份
 	snapshot := internalcache.NewEmptySnapshot()
 	metricsRecorder := metrics.NewMetricsAsyncRecorder(1000, time.Second, stopEverything)
 
@@ -335,7 +339,8 @@ func New(ctx context.Context,
 	for _, fwk := range profiles {
 		fwk.SetPodNominator(podQueue)
 	}
-
+	//启动 scheduler 的缓存，主要是会启动 pkg/scheduler/internal/cache/cache.go:cleanupAssumedPods 
+	//这个函数定期清理AssumedPods
 	schedulerCache := internalcache.New(ctx, durationToExpireAssumedPod)
 
 	// Setup cache debugger.
