@@ -74,8 +74,12 @@ type Option func(runtime.Registry) error
 
 // NewSchedulerCommand creates a *cobra.Command object with default parameters and registryOptions
 func NewSchedulerCommand(registryOptions ...Option) *cobra.Command {
+	//这段代码是用于创建一个命令行工具的一部分，使用了 Cobra 库。Cobra 是一个用于创建命令行应用程序的 Go 语言库，它提供了一种方便的方式来定义命令、子命令、标志
+	//和参数等
+	//按照默认参数值初始化组件
 	opts := options.NewOptions()
-
+	//定义kube-scheduler的命令运行方法，即runCommand函数,这行代码创建了一个名为 `cmd` 的 Cobra 命令对象，用于定义一个命令行命令。大括号 `{}` 内部包含
+	//了该命令的配置信息。
 	cmd := &cobra.Command{
 		Use: "kube-scheduler",
 		Long: `The Kubernetes scheduler is a control plane process which assigns
@@ -86,9 +90,13 @@ suitable Node. Multiple different schedulers may be used within a cluster;
 kube-scheduler is the reference implementation.
 See [scheduling](https://kubernetes.io/docs/concepts/scheduling-eviction/)
 for more information about scheduling and the kube-scheduler component.`,
+		//`RunE` 字段是一个匿名函数，用于定义命令的执行逻辑。当用户运行该命令时，这个函数将被调用，接收 `cmd`（命令对象）、`args`（命令行参数）以及
+		//其他参数（`opts` 和 `registryOptions...`），然后执行特定的逻辑。在这里，它调用了 `runCommand` 函数，并传递了相应的参数，然后返回函数的执行结果。
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCommand(cmd, opts, registryOptions...)
 		},
+		//`Args` 字段也是一个匿名函数，用于定义命令的参数验证逻辑。在这个函数中，它遍历了传递给命令的 `args` 切片，检查是否有非空的参数。如果有非空
+		//参数，它将返回一个错误，指示该命令不接受任何参数。否则，它将返回 `nil`，表示参数验证通过。
 		Args: func(cmd *cobra.Command, args []string) error {
 			for _, arg := range args {
 				if len(arg) > 0 {
@@ -98,7 +106,7 @@ for more information about scheduling and the kube-scheduler component.`,
 			return nil
 		},
 	}
-
+	//组件命令行参数解析
 	nfs := opts.Flags
 	verflag.AddFlags(nfs.FlagSet("global"))
 	globalflag.AddGlobalFlags(nfs.FlagSet("global"), cmd.Name(), logs.SkipLoggingConfigurationFlags())
@@ -321,6 +329,11 @@ func WithPlugin(name string, factory runtime.PluginFactory) Option {
 }
 
 // Setup creates a completed config and a scheduler based on the command args and options
+//Setup 函数中，opt.Config() 主要做了下面几件事：
+//createClients 启动 clientset
+//events.NewEventBroadcasterAdapter(eventClient) 启动 EventBroadcaster
+//c.InformerFactory = informers.NewSharedInformerFactory(client, 0) 启动 informer
+//上面这几步基本所有的 kubernetes 的组件基本都是有的，保证组件跟 api-server 的通信。
 func Setup(ctx context.Context, opts *options.Options, outOfTreeRegistryOptions ...Option) (*schedulerserverconfig.CompletedConfig, *scheduler.Scheduler, error) {
 	if cfg, err := latest.Default(); err != nil {
 		return nil, nil, err
@@ -331,7 +344,7 @@ func Setup(ctx context.Context, opts *options.Options, outOfTreeRegistryOptions 
 	if errs := opts.Validate(); len(errs) > 0 {
 		return nil, nil, utilerrors.NewAggregate(errs)
 	}
-
+	//初始化client，EventBroadcaster，PodInformer，InformerFactory，并通过config回传
 	c, err := opts.Config(ctx)
 	if err != nil {
 		return nil, nil, err
