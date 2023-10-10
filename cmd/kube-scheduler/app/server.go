@@ -151,6 +151,7 @@ func runCommand(cmd *cobra.Command, opts *options.Options, registryOptions ...Op
 	}
 	// add feature enablement metrics
 	utilfeature.DefaultMutableFeatureGate.AddMetrics()
+	//调用Run()，启动kube-scheduler组件
 	return Run(ctx, cc, sched)
 }
 
