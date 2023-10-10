@@ -249,6 +249,7 @@ var defaultSchedulerOptions = schedulerOptions{
 }
 
 // New returns a Scheduler
+//scheduler.New启动scheduler
 func New(ctx context.Context,
 	client clientset.Interface,
 	informerFactory informers.SharedInformerFactory,
@@ -273,7 +274,7 @@ func New(ctx context.Context,
 		}
 		options.profiles = cfg.Profiles
 	}
-
+	//注册intree的plugins
 	registry := frameworkplugins.NewInTreeRegistry()
 	if err := registry.Merge(options.frameworkOutOfTreeRegistry); err != nil {
 		return nil, err
@@ -288,7 +289,7 @@ func New(ctx context.Context,
 
 	podLister := informerFactory.Core().V1().Pods().Lister()
 	nodeLister := informerFactory.Core().V1().Nodes().Lister()
-
+	//初始化snapshot
 	snapshot := internalcache.NewEmptySnapshot()
 	metricsRecorder := metrics.NewMetricsAsyncRecorder(1000, time.Second, stopEverything)
 
