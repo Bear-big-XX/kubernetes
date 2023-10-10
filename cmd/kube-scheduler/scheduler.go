@@ -27,6 +27,7 @@ import (
 )
 
 func main() {
+	//NewSchedulerCommand创建的是一个cobra.Command对象，后续的命令行处理相关功能都是借助cobra来实现的
 	command := app.NewSchedulerCommand()
 	code := cli.Run(command)
 	os.Exit(code)
