@@ -144,7 +144,7 @@ func runCommand(cmd *cobra.Command, opts *options.Options, registryOptions ...Op
 		<-stopCh
 		cancel()
 	}()
-
+	//stopCh作用是作为主程序退出的信号通知其他各协程进行相关的退出操作的
 	cc, sched, err := Setup(ctx, opts, registryOptions...)
 	if err != nil {
 		return err
