@@ -18,7 +18,7 @@ package main
 
 import (
 	"os"
-
+//import包名前加_表示只执行该包中的init()函数，并没有引入该包中的其余函数
 	"k8s.io/component-base/cli"
 	_ "k8s.io/component-base/logs/json/register" // for JSON log format registration
 	_ "k8s.io/component-base/metrics/prometheus/clientgo"
